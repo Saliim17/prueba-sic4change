@@ -7,10 +7,10 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
 
     // Si el usuario ya inició sesión, ve directamente a la página de recursos
-    if (_auth.currentUser != null) {
+    if (auth.currentUser != null) {
       Future.delayed(const Duration(seconds: 3))
           .then((value) => GoRouter.of(context).go('/resources'));
     } else {

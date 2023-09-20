@@ -1,7 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enredapp/resource_model.dart';
 import 'package:enredapp/user_drawer.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class ResourcesPage extends StatefulWidget {
@@ -15,7 +14,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
   @override
   Widget build(BuildContext context) {
 
-    final FirebaseAuth auth = FirebaseAuth.instance;
     final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
     final nameController = TextEditingController();
     final locationController = TextEditingController();
@@ -23,7 +21,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
     final typeController = TextEditingController();
     final photoController = TextEditingController();
     final logoController = TextEditingController();
-    bool isFormEnabled = true;
 
     return Scaffold(
       key: scaffoldKey,

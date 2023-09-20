@@ -8,7 +8,13 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    final FirebaseAuth _auth = FirebaseAuth.instance;
+    final FirebaseAuth auth = FirebaseAuth.instance;
+    String email = '';
+    if (auth.currentUser != null && auth.currentUser!.isAnonymous) {
+      email = 'Usuario anónimo';
+    } else {
+      email = auth.currentUser!.email!;
+    }
 
     return Drawer(
       child: ListView(
@@ -28,7 +34,7 @@ class AppDrawer extends StatelessWidget {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '${_auth.currentUser?.email}', // Cambia a tu nombre de usuario
+                  email, // Cambia a tu nombre de usuario
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -43,7 +49,7 @@ class AppDrawer extends StatelessWidget {
             title: const Text('Cerrar sesión'),
             onTap: () {
               // Agrega aquí la lógica para cerrar sesión
-              _auth.signOut();
+              auth.signOut();
               Navigator.of(context).pop();
               GoRouter.of(context).go('/login');// Cierra el Drawer
             },

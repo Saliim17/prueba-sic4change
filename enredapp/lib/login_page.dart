@@ -5,6 +5,8 @@ import 'package:go_router/go_router.dart';
 class LoginPage extends StatelessWidget {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
+  LoginPage({super.key});
+
   Future<void> _signInWithEmailAndPassword(
       BuildContext context, String email, String password) async {
     try {
@@ -13,10 +15,8 @@ class LoginPage extends StatelessWidget {
         password: password,
       );
       User? user = userCredential.user;
-      print("Usuario autenticado con correo y contraseña: ${user!.uid}");
       // Aquí puedes navegar a la siguiente pantalla después de iniciar sesión.
     } catch (e) {
-      print("Error al iniciar sesión con correo y contraseña: $e");
       // Maneja el error aquí, por ejemplo, mostrando un mensaje al usuario.
     }
   }
@@ -25,10 +25,8 @@ class LoginPage extends StatelessWidget {
     try {
       UserCredential userCredential = await _auth.signInAnonymously();
       User? user = userCredential.user;
-      print("Usuario anónimo autenticado: ${user!.uid}");
       // Aquí puedes navegar a la siguiente pantalla después de iniciar sesión de forma anónima.
     } catch (e) {
-      print("Error al iniciar sesión anónima: $e");
       // Maneja el error aquí, por ejemplo, mostrando un mensaje al usuario.
     }
   }
@@ -67,7 +65,6 @@ class LoginPage extends StatelessWidget {
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
-                print(_auth.currentUser != null);
                 // Llama a la función de inicio de sesión con correo y contraseña aquí.
                 // Debes obtener los valores de correo electrónico y contraseña del formulario.
                 _signInWithEmailAndPassword(
@@ -81,12 +78,8 @@ class LoginPage extends StatelessWidget {
             const SizedBox(height: 8.0),
             ElevatedButton(
               onPressed: () {
-                print(_auth.currentUser != null);
-                print(_auth.currentUser!.email);
                 _signInAnonymously(context);
-                if (_auth.currentUser != null) {
-                  GoRouter.of(context).go('/resources');
-                }
+                GoRouter.of(context).go('/resources');
               },
               child: const Text('Iniciar Sesión Anónima'),
             ),
