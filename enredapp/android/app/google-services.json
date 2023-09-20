@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "656054753818",
+    "project_id": "prueba-sic4change",
+    "storage_bucket": "prueba-sic4change.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:656054753818:android:c53f91f26d0bae86180fa3",
+        "android_client_info": {
+          "package_name": "com.example.enredapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBll4mcuNeA9m_BgNLtXh8glYcLQsUUnjQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
