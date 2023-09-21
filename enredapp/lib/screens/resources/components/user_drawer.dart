@@ -1,6 +1,7 @@
+import 'package:enredapp/routes/routes.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
 
 class AppDrawer extends StatelessWidget {
   const AppDrawer({super.key});
@@ -51,7 +52,6 @@ class AppDrawer extends StatelessWidget {
               // Agrega aquí la lógica para cerrar sesión
               auth.signOut();
               Navigator.of(context).pop();
-              GoRouter.of(context).go('/login');// Cierra el Drawer
             },
           ),
         ],

@@ -1,22 +1,18 @@
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:enredapp/screens/resources/resources_page.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:get/get.dart';
+
+import '../../routes/routes.dart';
 
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final FirebaseAuth auth = FirebaseAuth.instance;
 
-    // Si el usuario ya inició sesión, ve directamente a la página de recursos
-    if (auth.currentUser != null) {
-      Future.delayed(const Duration(seconds: 3))
-          .then((value) => GoRouter.of(context).go('/resources'));
-    } else {
-      Future.delayed(const Duration(seconds: 3))
-          .then((value) => GoRouter.of(context).go('/login'));
-    }
+    Future.delayed(const Duration(seconds: 3))
+        .then((value) => Get.off(const ResourcesPage()));
+
     return const Scaffold(
       body: Center(
         child: Column(
