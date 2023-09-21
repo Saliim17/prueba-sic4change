@@ -139,14 +139,29 @@ void _showResourceForm(BuildContext context, TextEditingController nameControlle
                 controller: typeController,
                 decoration: const InputDecoration(labelText: 'Tipo'),
               ),
-              TextField(
-                controller: photoController,
-                decoration: const InputDecoration(labelText: 'Foto'),
-              ),
-              TextField(
-                controller: logoController,
-                decoration: const InputDecoration(labelText: 'Logo'),
-              ),
+              const SizedBox(height: 20.0),
+              TextButton.icon(
+                  onPressed: (){
+                    _showUploadPhotoOptions(context);
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.blue,
+                  ),
+                  icon: const Icon(Icons.photo_size_select_actual),
+                  label: const Text('Subir logo')),
+              const SizedBox(height: 20.0),
+              TextButton.icon(
+                  onPressed: (){
+                    _showUploadPhotoOptions(context);
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.blue,
+                  ),
+                  icon: const Icon(Icons.photo_size_select_actual),
+                  label: const Text('Subir foto')),
+
             ],
           ),
         ),
@@ -212,6 +227,67 @@ void _showDeleteConfirmationDialog(BuildContext context, Resource resource) {
             onPressed: () {
               deleteResource(resource.id);
               Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
+void _showUploadPhotoOptions(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Opciones de carga'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: <Widget>[
+              TextButton.icon(
+                  onPressed: () async {
+                    ImagePicker imagePicker = ImagePicker();
+                    XFile? file = await imagePicker.pickImage(source: ImageSource.camera);
+
+
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.blue,
+                  ),
+                  icon: const Icon(Icons.camera),
+                  label: const Text('Cámara')),
+              const SizedBox(height: 20.0),
+              TextButton.icon(
+                  onPressed: (){
+                    ImagePicker imagePicker = ImagePicker();
+                    imagePicker.pickImage(source: ImageSource.gallery);
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.blue,
+                  ),
+                  icon: const Icon(Icons.photo_library),
+                  label: const Text('Galería del teléfono')),
+              const SizedBox(height: 20.0),
+              TextButton.icon(
+                  onPressed: (){
+
+                  },
+                  style: TextButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.blue,
+                  ),
+                  icon: const Icon(Icons.storage),
+                  label: const Text('Firebase Storage')),
+            ],
+          ),
+        ),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancelar'),
+            onPressed: () {
               Navigator.of(context).pop();
             },
           ),

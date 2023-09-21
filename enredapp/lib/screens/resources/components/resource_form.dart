@@ -84,42 +84,12 @@ class ResourceFormState extends State<ResourceForm> {
                 decoration: const InputDecoration(labelText: 'Tipo'),
               ),
               const SizedBox(height: 20.0),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[
-                  ElevatedButton(
-                    onPressed: () {
-                      //getImage(1);
-                    },
-                    child: const Text('Adjuntar logo'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      //getImage(2);
-                    },
-                    child: const Text('Adjuntar foto'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20.0),
-              /*selectedImage == null
-                  ? const Text('No se ha seleccionado una imagen 1')
-                  : Image.file(
-                File(selectedImage!.path),
-                height: 100.0,
-                width: 100.0,
-                fit: BoxFit.cover,
-              ),
-              const SizedBox(height: 20.0),
-              selectedImage2 == null
-                  ? const Text('No se ha seleccionado una imagen 2')
-                  : Image.file(
-                File(selectedImage2!.path),
-                height: 100.0,
-                width: 100.0,
-                fit: BoxFit.cover,
-              ),*/
-              const SizedBox(height: 20.0),
+              TextButton.icon(
+                  onPressed: (){
+
+                  },
+                  icon: const Icon(Icons.photo_size_select_actual),
+                  label: const Text('Subir foto')),
             ],
           ),
         ),
