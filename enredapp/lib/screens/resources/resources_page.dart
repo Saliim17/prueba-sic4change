@@ -193,6 +193,34 @@ Image? getResourceImage(Resource resource) => resource.logo != null && resource.
     ? Image.network(resource.photo!)
     : null;
 
+void _showDeleteConfirmationDialog(BuildContext context, Resource resource) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: const Text('Eliminar recurso'),
+        content: const Text('¿Estás seguro de que deseas eliminar este elemento?'),
+        actions: <Widget>[
+          TextButton(
+            child: const Text('Cancelar'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+          TextButton(
+            child: const Text('Eliminar'),
+            onPressed: () {
+              deleteResource(resource.id);
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
+
 void _showDraggableScrollableSheet(BuildContext context,
     Resource resource, TextEditingController nameController,
     TextEditingController locationController, TextEditingController validityController,
@@ -257,7 +285,7 @@ void _showDraggableScrollableSheet(BuildContext context,
                       ),
                       TextButton.icon(
                         onPressed: () {
-                          // Agrega la lógica de eliminación aquí
+                          _showDeleteConfirmationDialog(context, resource);
                         },
                         icon: const Icon(Icons.delete),
                         label: const Text('Eliminar'),
@@ -289,23 +317,6 @@ Widget buildResource(BuildContext context, Resource resource, GlobalKey formKey,
           onTap: () {
             return _showDraggableScrollableSheet(context, resource, nameController, locationController, validityController, typeController, photoController, logoController);
           },
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.edit),
-                onPressed: () {
-                  _showResourceForm(context, nameController, locationController, validityController, typeController, photoController, logoController, resource, true);
-                },
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete),
-                onPressed: () {
-                  deleteResource(resource.id);
-                },
-              ),
-            ],
-          ),
         );
       });
 }
