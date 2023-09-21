@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:enredapp/auth/auth_controller.dart';
 import 'package:enredapp/services/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
@@ -23,6 +24,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
 
   final FirebaseAuth auth = FirebaseAuth.instance;
   final AuthController authController = Get.find<AuthController>();
+  String imageUrl = '';
 
   @override
   void initState() {
@@ -71,7 +73,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showResourceForm(context, nameController, locationController, validityController, typeController, photoController, logoController);
+          _showResourceForm(context, imageUrl, nameController, locationController, validityController, typeController, photoController, logoController);
         },
         child: const Icon(Icons.add),
       ),
@@ -82,7 +84,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
             final resources = snapshot.data!;
             return ListView(
               children: resources
-                  .map((resource) => buildResource(context, resource, formKey, nameController, locationController, validityController, typeController, photoController, logoController))
+                  .map((resource) => buildResource(context, resource, imageUrl, formKey, nameController, locationController, validityController, typeController, photoController, logoController))
                   .toList(),
             );
           } else if (snapshot.hasError) {
@@ -101,7 +103,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 }
 
-void _showResourceForm(BuildContext context, TextEditingController nameController, TextEditingController locationController, TextEditingController validityController, TextEditingController typeController, TextEditingController photoController, TextEditingController logoController, [Resource? resource, bool isEditMode = false]) {
+void _showResourceForm(BuildContext context, String imageUrl, TextEditingController nameController, TextEditingController locationController, TextEditingController validityController, TextEditingController typeController, TextEditingController photoController, TextEditingController logoController, [Resource? resource, bool isEditMode = false]) {
 
   String id = resource?.id ?? '';
   if (resource != null) {
@@ -142,7 +144,7 @@ void _showResourceForm(BuildContext context, TextEditingController nameControlle
               const SizedBox(height: 20.0),
               TextButton.icon(
                   onPressed: (){
-                    _showUploadPhotoOptions(context);
+                    _showUploadPhotoOptions(context, imageUrl);
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -153,7 +155,7 @@ void _showResourceForm(BuildContext context, TextEditingController nameControlle
               const SizedBox(height: 20.0),
               TextButton.icon(
                   onPressed: (){
-                    _showUploadPhotoOptions(context);
+                    _showUploadPhotoOptions(context, imageUrl);
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -236,7 +238,7 @@ void _showDeleteConfirmationDialog(BuildContext context, Resource resource) {
   );
 }
 
-void _showUploadPhotoOptions(BuildContext context) {
+void _showUploadPhotoOptions(BuildContext context, String imageUrl) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -249,8 +251,19 @@ void _showUploadPhotoOptions(BuildContext context) {
                   onPressed: () async {
                     ImagePicker imagePicker = ImagePicker();
                     XFile? file = await imagePicker.pickImage(source: ImageSource.camera);
+                    if (file == null) return;
+                    String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
+                    Reference referenceRoot = FirebaseStorage.instance.ref();
+                    Reference referenceDirImages = referenceRoot.child('images');
+                    Reference referenceImageToUpload = referenceDirImages.child(uniqueFileName);
 
-
+                    try{
+                      await referenceImageToUpload.putFile(File(file.path));
+                      imageUrl = await referenceImageToUpload.getDownloadURL();
+                      print("URL de la imagen: $imageUrl");
+                    } on FirebaseException catch (e) {
+                      print(e);
+                    }
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -298,7 +311,7 @@ void _showUploadPhotoOptions(BuildContext context) {
 }
 
 void _showDraggableScrollableSheet(BuildContext context,
-    Resource resource, TextEditingController nameController,
+    Resource resource, String imageUrl, TextEditingController nameController,
     TextEditingController locationController, TextEditingController validityController,
     TextEditingController typeController, TextEditingController photoController,
     TextEditingController logoController,
@@ -350,7 +363,7 @@ void _showDraggableScrollableSheet(BuildContext context,
                       TextButton.icon(
                         onPressed: () {
                           Navigator.of(context).pop();
-                          _showResourceForm(context, nameController, locationController, validityController, typeController, photoController, logoController, resource, true);
+                          _showResourceForm(context, imageUrl, nameController, locationController, validityController, typeController, photoController, logoController, resource, true);
                         },
                         icon: const Icon(Icons.edit),
                         label: const Text('Editar'),
@@ -382,7 +395,7 @@ void _showDraggableScrollableSheet(BuildContext context,
   );
 }
 
-Widget buildResource(BuildContext context, Resource resource, GlobalKey formKey, TextEditingController nameController, TextEditingController locationController, TextEditingController validityController, TextEditingController typeController, TextEditingController photoController, TextEditingController logoController) {
+Widget buildResource(BuildContext context, Resource resource, String imageUrl, GlobalKey formKey, TextEditingController nameController, TextEditingController locationController, TextEditingController validityController, TextEditingController typeController, TextEditingController photoController, TextEditingController logoController) {
 
   return StatefulBuilder(
       builder: (context, setState) {
@@ -391,7 +404,7 @@ Widget buildResource(BuildContext context, Resource resource, GlobalKey formKey,
           subtitle: Text(resource.location),
           leading: null,//getResourceImage(resource),
           onTap: () {
-            return _showDraggableScrollableSheet(context, resource, nameController, locationController, validityController, typeController, photoController, logoController);
+            return _showDraggableScrollableSheet(context, resource, imageUrl, nameController, locationController, validityController, typeController, photoController, logoController);
           },
         );
       });
