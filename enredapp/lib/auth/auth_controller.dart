@@ -1,18 +1,16 @@
+import 'package:enredapp/screens/login/login_page.dart';
 import 'package:enredapp/services/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../screens/resources/resources_page.dart';
 
 class AuthController extends GetxController {
-
   final FirebaseAuth auth = FirebaseAuth.instance;
   RxBool isLoggedIn = false.obs;
 
   Future<void> signOut() async {
-
     try {
       auth.signOut();
       isLoggedIn.value = false;
@@ -82,4 +80,20 @@ class AuthController extends GetxController {
       );
     }
   }
+}
+
+IconButton getAuthButton(AuthController authController) {
+  return authController.isLoggedIn.value
+      ? IconButton(
+          icon: const Icon(Icons.logout),
+          onPressed: () {
+            authController.signOut();
+          },
+        )
+      : IconButton(
+          icon: const Icon(Icons.login),
+          onPressed: () {
+            Get.offAll(() => LoginPage());
+          },
+        );
 }

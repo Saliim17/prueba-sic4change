@@ -1,10 +1,8 @@
-import 'package:enredapp/screens/resources/resources_page.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 
 import '../../auth/auth_controller.dart';
-import '../../routes/routes.dart';
 
 class LoginPage extends StatelessWidget {
   final FirebaseAuth auth = FirebaseAuth.instance;
@@ -46,9 +44,8 @@ class LoginPage extends StatelessWidget {
             const SizedBox(height: 16.0),
             ElevatedButton(
               onPressed: () {
-                authController.signInWithEmailAndPassword(context,
-                    emailController.text, passwordController.text);
-                print("login: ${auth.currentUser!.uid}");
+                authController.signInWithEmailAndPassword(
+                    context, emailController.text, passwordController.text);
               },
               child: const Text('Iniciar Sesión con Correo y Contraseña'),
             ),

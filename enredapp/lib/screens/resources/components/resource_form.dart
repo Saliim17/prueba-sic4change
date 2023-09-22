@@ -1,150 +1,140 @@
-import 'dart:io';
-
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:enredapp/screens/resources/components/resource_model.dart';
+import 'package:enredapp/screens/resources/resource_utils.dart';
+import 'package:enredapp/screens/resources/utils/dialog_utils.dart';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
+import 'package:get/get.dart';
 
-class ResourceForm extends StatefulWidget {
-  final Resource? resource;
-  const ResourceForm({Key? key, this.resource}) : super(key: key);
+import '../../../models/resource_model.dart';
 
-  @override
-  ResourceFormState createState() => ResourceFormState();
-}
-
-class ResourceFormState extends State<ResourceForm> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _locationController = TextEditingController();
-  final TextEditingController _validityController = TextEditingController();
-  final TextEditingController _typeController = TextEditingController();
-  final TextEditingController _photoController = TextEditingController();
-  final TextEditingController _logoController = TextEditingController();
-
-  @override
-  void dispose() {
-    _nameController.dispose();
-    _locationController.dispose();
-    _validityController.dispose();
-    _typeController.dispose();
-    _photoController.dispose();
-    _logoController.dispose();
-    super.dispose();
+void showResourceForm(
+    BuildContext context,
+    RxString imageType,
+    RxString photoUrl,
+    RxString logoUrl,
+    TextEditingController nameController,
+    TextEditingController locationController,
+    TextEditingController validityController,
+    TextEditingController typeController,
+    TextEditingController photoController,
+    TextEditingController logoController,
+    [Resource? resource,
+    bool isEditMode = false]) {
+  String id = resource?.id ?? '';
+  if (resource != null) {
+    nameController.text = resource.name;
+    locationController.text = resource.location;
+    validityController.text = resource.validity;
+    typeController.text = resource.type;
+    photoController.text = resource.getPhotoUrl() ?? '';
+    logoController.text = resource.getLogoUrl() ?? '';
   }
 
-  bool isEditMode = false;
-  String nameButton = 'Crear';
-  Resource? resource;
-  String id = '';
-
-  @override
-  void initState() {
-    super.initState();
-    resource = widget.resource;
-    isEditMode = widget.resource != null ? true : false;
-    nameButton = isEditMode ? 'Actualizar' : 'Crear';
-    id = resource?.id ?? '';
-    if (resource != null) {
-      _nameController.text = resource!.name;
-      _locationController.text = resource!.location;
-      _validityController.text = resource!.validity;
-      _typeController.text = resource!.type;
-      _photoController.text = resource!.photo ?? '';
-      _logoController.text = resource!.logo ?? '';
-    }
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-
-    return AlertDialog(
-      title: const Text('Nuevo recurso'),
-      content: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      String nameButton = isEditMode ? 'Actualizar' : 'Crear';
+      return AlertDialog(
+        title: const Text('Nuevo recurso'),
+        content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               TextField(
-                controller: _nameController,
+                controller: nameController,
                 decoration: const InputDecoration(labelText: 'Nombre'),
               ),
               TextField(
-                controller: _locationController,
+                controller: locationController,
                 decoration: const InputDecoration(labelText: 'Lugar'),
               ),
               TextField(
-                controller: _validityController,
+                controller: validityController,
                 decoration: const InputDecoration(labelText: 'Validez'),
               ),
               TextField(
-                controller: _typeController,
+                controller: typeController,
                 decoration: const InputDecoration(labelText: 'Tipo'),
               ),
               const SizedBox(height: 20.0),
-              TextButton.icon(
-                  onPressed: (){
-
-                  },
-                  icon: const Icon(Icons.photo_size_select_actual),
-                  label: const Text('Subir foto')),
+              Obx(() => photoUrl.value.isEmpty
+                  ? TextButton.icon(
+                      onPressed: () {
+                        imageType.value = 'photo';
+                        showUploadPhotoOptions(
+                            context, imageType, photoUrl, logoUrl);
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.blue,
+                      ),
+                      icon: const Icon(Icons.photo),
+                      label: const Text('Foto'))
+                  : const Row(
+                      children: [
+                        Icon(Icons.attach_file),
+                        Text("Foto cargada"),
+                      ],
+                    )),
+              const SizedBox(height: 20.0),
+              Obx(() => logoUrl.value.isEmpty
+                  ? TextButton.icon(
+                      onPressed: () {
+                        imageType.value = 'logo';
+                        showUploadPhotoOptions(
+                            context, imageType, photoUrl, logoUrl);
+                      },
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        backgroundColor: Colors.blue,
+                      ),
+                      icon: const Icon(Icons.photo),
+                      label: const Text('Logo'))
+                  : const Row(
+                      children: [
+                        Icon(Icons.attach_file),
+                        Text("Logo cargado"),
+                      ],
+                    )),
             ],
           ),
         ),
-      ),
-      actions: <Widget>[
-        ElevatedButton(
-          onPressed: () {
-            final resource = Resource(
-                id: id,
-                name: _nameController.text,
-                location: _locationController.text,
-                validity: _validityController.text,
-                type: _typeController.text,
-                photo: _photoController.text,
-                logo: _logoController.text);
-            if (isEditMode) {
-              // Actualizar el recurso
-              updateResource(resource);
-            } else {
-              // Crear el recurso
-              createResource(resource);
-            }
-            Navigator.of(context).pop(); // Cerrar el diálogo
-          },
-          child: Text(nameButton),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.of(context).pop(); // Cerrar el diálogo
+        actions: <Widget>[
+          ElevatedButton(
+            onPressed: () {
+              final newResource = Resource(
+                  id: id,
+                  name: nameController.text,
+                  location: locationController.text,
+                  validity: validityController.text,
+                  type: typeController.text,
+                  photo: photoUrl.value.isNotEmpty
+                      ? photoUrl.value
+                      : photoController.text,
+                  logo: logoUrl.value.isNotEmpty
+                      ? logoUrl.value
+                      : logoController.text);
+              if (isEditMode) {
+                // Actualizar el recurso
+                updateResource(newResource);
+              } else {
+                // Crear el recurso
 
-          },
-          child: const Text('Cancelar'),
-        ),
-      ],
-    );
-  }
-}
+                createResource(newResource);
+              }
 
-Future createResource(Resource resource) async {
-  // Reference to document
-  final docResource = FirebaseFirestore.instance.collection('resources').doc();
-
-  resource.id = docResource.id;
-
-  final json = resource.toJson();
-
-  await docResource.set(json);
-}
-
-Future updateResource(Resource resource) async {
-  final docResource = FirebaseFirestore.instance
-      .collection('resources')
-      .doc(resource.id);
-
-  final json = resource.toJson();
-
-  await docResource.update(json);
+              photoUrl.value = '';
+              logoUrl.value = '';
+              Navigator.of(context).pop();
+            },
+            child: Text(nameButton),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).pop(); // Cerrar el diálogo
+            },
+            child: const Text('Cancelar'),
+          ),
+        ],
+      );
+    },
+  );
 }

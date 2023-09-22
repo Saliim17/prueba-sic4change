@@ -2,7 +2,6 @@ import 'package:enredapp/screens/resources/resources_page.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import '../../routes/routes.dart';
 
 class SplashPage extends StatelessWidget {
   const SplashPage({super.key});
