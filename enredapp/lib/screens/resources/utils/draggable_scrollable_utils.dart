@@ -121,7 +121,8 @@ void showDraggableScrollableSheet(
   );
 }
 
-void showDraggableFirebaseStorageImages(BuildContext context) {
+void showDraggableFirebaseStorageImages(BuildContext context, RxString imageType,
+    RxString photoUrl, RxString logoUrl) {
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -157,19 +158,33 @@ void showDraggableFirebaseStorageImages(BuildContext context) {
                       endIndent: 1,
                     ),
                     const SizedBox(height: 20.0),
-                    FutureBuilder<List<Reference>>(
+                    FutureBuilder<List<String>>(
                       future: getImagesFromFirebaseStorage(),
                       builder: (context, snapshot) {
                         if (snapshot.hasData) {
                           final images = snapshot.data!;
-                          return ListView(
+                          return GridView.builder(
                             shrinkWrap: true,
-                            children: images
-                                .map((image) => ListTile(
-                                      title: Text(image.name),
-                                      leading: Image.network(image.fullPath),
-                                    ))
-                                .toList(),
+                            itemCount: images.length,
+                            gridDelegate:
+                                const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 4.0,
+                              mainAxisSpacing: 4.0,
+                            ),
+                            itemBuilder: (context, index) {
+                              return GestureDetector(
+                                onTap: () {
+                                  if (imageType.value == 'photo') {
+                                    photoUrl.value = images[index];
+                                  } else if (imageType.value == 'logo') {
+                                    logoUrl.value = images[index];
+                                  }
+                                  Navigator.of(context).pop();
+                                },
+                                child: Image.network(images[index]),
+                              );
+                            },
                           );
                         } else if (snapshot.hasError) {
                           return const Center(

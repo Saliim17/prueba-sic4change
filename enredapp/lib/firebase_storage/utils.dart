@@ -4,11 +4,16 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 
-Future<List<Reference>> getImagesFromFirebaseStorage() async {
+Future<List<String>> getImagesFromFirebaseStorage() async {
   Reference referenceRoot = FirebaseStorage.instance.ref();
   Reference referenceDirImages = referenceRoot.child('images');
   ListResult listResult = await referenceDirImages.listAll();
-  return listResult.items;
+  List<String> images = [];
+  for(final image in listResult.items) {
+    images.add(await image.getDownloadURL());
+  }
+
+  return images;
 }
 
 void uploadFileFromCamera(

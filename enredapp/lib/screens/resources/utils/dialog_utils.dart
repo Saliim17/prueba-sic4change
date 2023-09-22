@@ -71,7 +71,7 @@ void showUploadPhotoOptions(BuildContext context, RxString imageType,
               TextButton.icon(
                   onPressed: () {
                     Navigator.of(context).pop();
-                    showDraggableFirebaseStorageImages(context);
+                    showDraggableFirebaseStorageImages(context, imageType, photoUrl, logoUrl);
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
