@@ -41,6 +41,22 @@ class Resource {
     };
   }
 
+  bool hasPhoto() {
+    return photo != null && photo!.isNotEmpty;
+  }
+
+  bool hasLogo() {
+    return logo != null && logo!.isNotEmpty;
+  }
+
+  String? getPhotoUrl() {
+    return hasPhoto() ? photo : null;
+  }
+
+  String? getLogoUrl() {
+    return hasLogo() ? logo : null;
+  }
+
   @override
   String toString() {
     return 'Resource{name: $name, location: $location, validity: $validity, type: $type, photo: $photo, logo: $logo}';
