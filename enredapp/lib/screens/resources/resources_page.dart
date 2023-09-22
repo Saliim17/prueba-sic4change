@@ -24,7 +24,9 @@ class _ResourcesPageState extends State<ResourcesPage> {
 
   final FirebaseAuth auth = FirebaseAuth.instance;
   final AuthController authController = Get.find<AuthController>();
-  String imageUrl = '';
+  RxString logoUrl = ''.obs;
+  RxString photoUrl = ''.obs;
+  RxString imageType = ''.obs;
 
   @override
   void initState() {
@@ -53,7 +55,6 @@ class _ResourcesPageState extends State<ResourcesPage> {
         title: const Text('Listado de Recursos'),
         actions: [
           Obx(() {
-            print("HOLA ${authController.isLoggedIn.value}");
             return authController.isLoggedIn.value
                 ? IconButton(
                     icon: const Icon(Icons.logout),
@@ -73,7 +74,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          _showResourceForm(context, imageUrl, nameController, locationController, validityController, typeController, photoController, logoController);
+          _showResourceForm(context, imageType, photoUrl, logoUrl, nameController, locationController, validityController, typeController, photoController, logoController);
         },
         child: const Icon(Icons.add),
       ),
@@ -84,7 +85,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
             final resources = snapshot.data!;
             return ListView(
               children: resources
-                  .map((resource) => buildResource(context, resource, imageUrl, formKey, nameController, locationController, validityController, typeController, photoController, logoController))
+                  .map((resource) => buildResource(context, resource, imageType, photoUrl, logoUrl, formKey, nameController, locationController, validityController, typeController, photoController, logoController))
                   .toList(),
             );
           } else if (snapshot.hasError) {
@@ -103,7 +104,7 @@ class _ResourcesPageState extends State<ResourcesPage> {
   }
 }
 
-void _showResourceForm(BuildContext context, String imageUrl, TextEditingController nameController, TextEditingController locationController, TextEditingController validityController, TextEditingController typeController, TextEditingController photoController, TextEditingController logoController, [Resource? resource, bool isEditMode = false]) {
+void _showResourceForm(BuildContext context, RxString imageType, RxString photoUrl, RxString logoUrl, TextEditingController nameController, TextEditingController locationController, TextEditingController validityController, TextEditingController typeController, TextEditingController photoController, TextEditingController logoController, [Resource? resource, bool isEditMode = false]) {
 
   String id = resource?.id ?? '';
   if (resource != null) {
@@ -142,28 +143,49 @@ void _showResourceForm(BuildContext context, String imageUrl, TextEditingControl
                 decoration: const InputDecoration(labelText: 'Tipo'),
               ),
               const SizedBox(height: 20.0),
-              TextButton.icon(
-                  onPressed: (){
-                    _showUploadPhotoOptions(context, imageUrl);
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.blue,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Obx(() => photoUrl.value.isEmpty
+                      ? TextButton.icon(
+                          onPressed: () {
+                            imageType.value = 'photo';
+                            _showUploadPhotoOptions(context, imageType, photoUrl, logoUrl);
+                          },
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.blue,
+                          ),
+                          icon: const Icon(Icons.photo),
+                          label: const Text('Foto'))
+                      : const Row(
+                          children: [
+                            Icon(Icons.attach_file),
+                            Text("Foto cargada"),
+                          ],
+                      )
                   ),
-                  icon: const Icon(Icons.photo_size_select_actual),
-                  label: const Text('Subir logo')),
-              const SizedBox(height: 20.0),
-              TextButton.icon(
-                  onPressed: (){
-                    _showUploadPhotoOptions(context, imageUrl);
-                  },
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors.blue,
+                  Obx(() => logoUrl.value.isEmpty
+                        ? TextButton.icon(
+                            onPressed: () {
+                              imageType.value = 'logo';
+                              _showUploadPhotoOptions(context, imageType, photoUrl, logoUrl);
+                            },
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                          backgroundColor: Colors.blue,
+                        ),
+                        icon: const Icon(Icons.photo),
+                        label: const Text('Logo'))
+                      : const Row(
+                          children: [
+                            Icon(Icons.attach_file),
+                            Text("Logo cargado"),
+                          ],
+                      )
                   ),
-                  icon: const Icon(Icons.photo_size_select_actual),
-                  label: const Text('Subir foto')),
-
+                ],
+              ),
             ],
           ),
         ),
@@ -176,8 +198,8 @@ void _showResourceForm(BuildContext context, String imageUrl, TextEditingControl
                   location: locationController.text,
                   validity: validityController.text,
                   type: typeController.text,
-                  photo: photoController.text,
-                  logo: logoController.text);
+                  photo: photoUrl.value,
+                  logo: logoUrl.value);
               if (isEditMode) {
                 // Actualizar el recurso
                 updateResource(resource);
@@ -205,9 +227,17 @@ void _showResourceForm(BuildContext context, String imageUrl, TextEditingControl
 }
 
 Image? getResourceImage(Resource resource) => resource.logo != null && resource.logo!.isNotEmpty
-    ? Image.network(resource.logo!)
+    ? Image.network(resource.logo!, width: 100, height: 100)
     : resource.photo != null && resource.photo!.isNotEmpty
-    ? Image.network(resource.photo!)
+    ? Image.network(resource.photo!, width: 100, height: 100)
+    : null;
+
+Image? getResourceLogo(Resource resource) => resource.logo != null && resource.logo!.isNotEmpty
+    ? Image.network(resource.logo!, width: 100, height: 100)
+    : null;
+
+Image? getResourcePhoto(Resource resource) => resource.photo != null && resource.photo!.isNotEmpty
+    ? Image.network(resource.photo!, width: 100, height: 100)
     : null;
 
 void _showDeleteConfirmationDialog(BuildContext context, Resource resource) {
@@ -238,7 +268,8 @@ void _showDeleteConfirmationDialog(BuildContext context, Resource resource) {
   );
 }
 
-void _showUploadPhotoOptions(BuildContext context, String imageUrl) {
+void _showUploadPhotoOptions(BuildContext context, RxString imageType, RxString photoUrl, RxString logoUrl) {
+
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -248,22 +279,9 @@ void _showUploadPhotoOptions(BuildContext context, String imageUrl) {
           child: ListBody(
             children: <Widget>[
               TextButton.icon(
-                  onPressed: () async {
-                    ImagePicker imagePicker = ImagePicker();
-                    XFile? file = await imagePicker.pickImage(source: ImageSource.camera);
-                    if (file == null) return;
-                    String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
-                    Reference referenceRoot = FirebaseStorage.instance.ref();
-                    Reference referenceDirImages = referenceRoot.child('images');
-                    Reference referenceImageToUpload = referenceDirImages.child(uniqueFileName);
-
-                    try{
-                      await referenceImageToUpload.putFile(File(file.path));
-                      imageUrl = await referenceImageToUpload.getDownloadURL();
-                      print("URL de la imagen: $imageUrl");
-                    } on FirebaseException catch (e) {
-                      print(e);
-                    }
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    uploadFileFromCamera(imageType, photoUrl, logoUrl);
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -274,8 +292,11 @@ void _showUploadPhotoOptions(BuildContext context, String imageUrl) {
               const SizedBox(height: 20.0),
               TextButton.icon(
                   onPressed: (){
-                    ImagePicker imagePicker = ImagePicker();
-                    imagePicker.pickImage(source: ImageSource.gallery);
+                    Navigator.of(context).pop();
+                    print("TIPO DE IMAGEN: ${imageType.value}");
+                    print("INIT PHOTO URL: ${photoUrl.value}");
+                    print("INIT LOGO URL: ${logoUrl.value}");
+                    uploadFileFromGallery(imageType, photoUrl, logoUrl);
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -286,7 +307,8 @@ void _showUploadPhotoOptions(BuildContext context, String imageUrl) {
               const SizedBox(height: 20.0),
               TextButton.icon(
                   onPressed: (){
-
+                    Navigator.of(context).pop();
+                    //uploadFileFromFirebaseStorage(imageUrl);
                   },
                   style: TextButton.styleFrom(
                     foregroundColor: Colors.white,
@@ -310,8 +332,54 @@ void _showUploadPhotoOptions(BuildContext context, String imageUrl) {
   );
 }
 
+void uploadFileFromCamera(RxString imageType, RxString photoUrl, RxString logoUrl) async {
+  ImagePicker imagePicker = ImagePicker();
+  XFile? file = await imagePicker.pickImage(source: ImageSource.camera);
+  if (file == null) return;
+  String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
+  Reference referenceRoot = FirebaseStorage.instance.ref();
+  Reference referenceDirImages = referenceRoot.child('images');
+  Reference referenceImageToUpload = referenceDirImages.child(uniqueFileName);
+
+  try{
+    await referenceImageToUpload.putFile(File(file.path));
+    if(imageType.value == 'photo') {
+      photoUrl.value = await referenceImageToUpload.getDownloadURL();
+    } else if (imageType.value == 'logo') {
+      logoUrl.value = await referenceImageToUpload.getDownloadURL();
+    }
+  } on FirebaseException catch (e) {
+    print(e);
+  }
+}
+
+void uploadFileFromGallery(RxString imageType, RxString photoUrl, RxString logoUrl) async {
+  ImagePicker imagePicker = ImagePicker();
+  XFile? file = await imagePicker.pickImage(source: ImageSource.gallery);
+  if (file == null) return;
+  String uniqueFileName = DateTime.now().millisecondsSinceEpoch.toString();
+  Reference referenceRoot = FirebaseStorage.instance.ref();
+  Reference referenceDirImages = referenceRoot.child('images');
+  Reference referenceImageToUpload = referenceDirImages.child(uniqueFileName);
+
+  try{
+    await referenceImageToUpload.putFile(File(file.path));
+    if(imageType.value == 'photo') {
+      photoUrl.value = await referenceImageToUpload.getDownloadURL();
+    } else if (imageType.value == 'logo') {
+      logoUrl.value = await referenceImageToUpload.getDownloadURL();
+    }
+
+    print("IMAGE TYPE: ${imageType.value}");
+    print("PHOTO URL: ${photoUrl.value}");
+    print("LOGO URL: ${logoUrl.value}");
+  } on FirebaseException catch (e) {
+    print(e);
+  }
+}
+
 void _showDraggableScrollableSheet(BuildContext context,
-    Resource resource, String imageUrl, TextEditingController nameController,
+    Resource resource, RxString imageType, RxString photoUrl, RxString logoUrl, TextEditingController nameController,
     TextEditingController locationController, TextEditingController validityController,
     TextEditingController typeController, TextEditingController photoController,
     TextEditingController logoController,
@@ -325,8 +393,8 @@ void _showDraggableScrollableSheet(BuildContext context,
     ),
     builder: (BuildContext context) {
       return DraggableScrollableSheet(
-        initialChildSize: 0.65,
-        minChildSize: 0.65,
+        initialChildSize: 0.9,
+        minChildSize: 0.9,
         maxChildSize: 0.9,
         builder: (BuildContext context, ScrollController scrollController) {
           return Container(
@@ -336,56 +404,63 @@ void _showDraggableScrollableSheet(BuildContext context,
             ),
             child: Container(
               padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Align(
-                      alignment: Alignment.center,
-                      child: Text('Detalles del recurso')),
-                  const Divider(
-                    color: Colors.grey,
-                    height: 20,
-                    thickness: 1,
-                    indent: 1,
-                    endIndent: 1,
-                  ),
-                  Text('Nombre: ${resource.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 20.0),
-                  Text('Lugar: ${resource.location}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 20.0),
-                  Text('Validez: ${resource.validity}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 20.0),
-                  Text('Tipo: ${resource.type}', style: const TextStyle(fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 20.0),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      TextButton.icon(
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                          _showResourceForm(context, imageUrl, nameController, locationController, validityController, typeController, photoController, logoController, resource, true);
-                        },
-                        icon: const Icon(Icons.edit),
-                        label: const Text('Editar'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.blue,
-                        )
-                      ),
-                      TextButton.icon(
-                        onPressed: () {
-                          _showDeleteConfirmationDialog(context, resource);
-                        },
-                        icon: const Icon(Icons.delete),
-                        label: const Text('Eliminar'),
-                        style: TextButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          backgroundColor: Colors.red,
-                        )
-                      ),
-                    ],
-                  ),
-                ],
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Align(
+                        alignment: Alignment.center,
+                        child: Text('Detalles del recurso')),
+                    const Divider(
+                      color: Colors.grey,
+                      height: 20,
+                      thickness: 1,
+                      indent: 1,
+                      endIndent: 1,
+                    ),
+                    Text('Nombre: ${resource.name}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20.0),
+                    getResourceLogo(resource) ?? const Text('No hay logo'),
+                    const SizedBox(height: 20.0),
+                    Text('Lugar: ${resource.location}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20.0),
+                    Text('Validez: ${resource.validity}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20.0),
+                    Text('Tipo: ${resource.type}', style: const TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20.0),
+                    const Text('Foto:', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 20.0),
+                    getResourcePhoto(resource) ?? const Text('No hay foto'),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton.icon(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                            _showResourceForm(context, imageType, photoUrl, logoUrl, nameController, locationController, validityController, typeController, photoController, logoController, resource, true);
+                          },
+                          icon: const Icon(Icons.edit),
+                          label: const Text('Editar'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.blue,
+                          )
+                        ),
+                        TextButton.icon(
+                          onPressed: () {
+                            _showDeleteConfirmationDialog(context, resource);
+                          },
+                          icon: const Icon(Icons.delete),
+                          label: const Text('Eliminar'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.white,
+                            backgroundColor: Colors.red,
+                          )
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -395,16 +470,16 @@ void _showDraggableScrollableSheet(BuildContext context,
   );
 }
 
-Widget buildResource(BuildContext context, Resource resource, String imageUrl, GlobalKey formKey, TextEditingController nameController, TextEditingController locationController, TextEditingController validityController, TextEditingController typeController, TextEditingController photoController, TextEditingController logoController) {
+Widget buildResource(BuildContext context, Resource resource, RxString imageType, RxString photoUrl, RxString logoUrl, GlobalKey formKey, TextEditingController nameController, TextEditingController locationController, TextEditingController validityController, TextEditingController typeController, TextEditingController photoController, TextEditingController logoController) {
 
   return StatefulBuilder(
       builder: (context, setState) {
         return ListTile(
           title: Text(resource.name),
           subtitle: Text(resource.location),
-          leading: null,//getResourceImage(resource),
+          leading: getResourceImage(resource),
           onTap: () {
-            return _showDraggableScrollableSheet(context, resource, imageUrl, nameController, locationController, validityController, typeController, photoController, logoController);
+            return _showDraggableScrollableSheet(context, resource, imageType, photoUrl, logoUrl, nameController, locationController, validityController, typeController, photoController, logoController);
           },
         );
       });
